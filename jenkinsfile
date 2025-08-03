@@ -2,84 +2,66 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
-            agent{
-                docker{
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
-            steps {
-                echo 'Hello World'
-                sh'''
-                   ls -la
-                   node --version
-                   npm --version
-                   npm ci
-                   npm run build
-                   ls -la
-                '''
-            }
-        }
-        stage('test') {
-            agent{
-                docker{
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
-            steps {
-                echo 'Testing Learn Jenkins App....'
-            sh '''
-                if [ -f build/index.html ]; then
-                    echo "index.html exists in build directory."
-                else
-                    echo "ERROR: index.html is missing!"
-                    exit 1
-                fi
+        /*
 
-                # Run test cases
-                npm test
-              '''
-              
-                
+        stage('Build') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
             }
-        }
-        stage('E2E') {
-    agent {
-        docker {
-            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-            reuseNode true
-        }
-    }
             steps {
                 sh '''
-                    # Install required dependencies
+                    ls -la
+                    node --version
+                    npm --version
+                    npm ci
+                    npm run build
+                    ls -la
+                '''
+            }
+        }
+        */
+
+        stage('Test') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+
+            steps {
+                sh '''
+                    #test -f build/index.html
+                    npm test
+                '''
+            }
+        }
+
+        stage('E2E') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    reuseNode true
+                }
+            }
+
+            steps {
+                sh '''
                     npm install serve
-
-                    # Start the server in background and capture PID
-                    npx serve -s build -l 5000 > /dev/null 2>&1 &
-                    SERVER_PID=$!
-
-                    # Wait until server responds or timeout
-                    for i in {1..10}; do
-                    curl -s http://localhost:5000 > /dev/null && break
-                    echo "Waiting for server..."
-                    sleep 1
-                    done
-
-                    # Run Playwright tests
+                    node_modules/.bin/serve -s build &
+                    sleep 10
                     npx playwright test
-
-                    # Kill the background server
-                    kill $SERVER_PID
                 '''
             }
         }
     }
-    post{
-        always{
-            junit 'test-results/junit.xml'
+
+    post {
+        always {
+            junit 'jest-results/junit.xml'
         }
     }
 }
