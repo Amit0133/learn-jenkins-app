@@ -21,5 +21,23 @@ pipeline {
                 '''
             }
         }
+        stage('test') {
+            steps {
+                echo 'Testing Learn Jenkins App....'
+            sh '''
+                if [ -f build/index.html ]; then
+                    echo "index.html exists in build directory."
+                else
+                    echo "ERROR: index.html is missing!"
+                    exit 1
+                fi
+
+                # Run test cases
+                npm test
+              '''
+              
+                
+            }
+        }
     }
 }
