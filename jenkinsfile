@@ -91,7 +91,7 @@ pipeline {
         //     }
         //     steps {
         //         sh '''
-        //             npm install netlify-cli@20.1.1 node-jq 
+        //             npm install netlify-cli@20.1.1 jq 
         //             node_modules/.bin/netlify --version
         //             echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
         //             node_modules/.bin/netlify status
@@ -99,7 +99,7 @@ pipeline {
                   
         //         '''
         //         script{
-        //         env.Staging_Url = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output.json ", returnStdout:true)
+        //         env.Staging_Url = sh(script: "node_modules/.bin/jq -r '.deploy_url' deploy-output.json ", returnStdout:true)
         //        }
         //     }
             
@@ -124,7 +124,7 @@ pipeline {
                     echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
                     netlify status
                     netlify deploy --dir=build --json > deploy-output.json
-                    CI_ENVIRONMENT_URL=$(node-jq -r '.deploy_url' deploy-output.json)
+                    CI_ENVIRONMENT_URL=$(jq -r '.deploy_url' deploy-output.json)
                     npx playwright test  --reporter=html
                 '''
             }
