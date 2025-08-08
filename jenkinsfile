@@ -49,7 +49,7 @@ pipeline {
         stage('Deploy to AWS ECS') {
             agent {
                 docker {
-                    image 'mesosphere/aws-cli' // includes AWS CLI and jq
+                    image 'public.ecr.aws/aws-cli/aws-cli:latest' // includes AWS CLI and jq
                     reuseNode true
                     args '-u root --entrypoint=""'
                 }
