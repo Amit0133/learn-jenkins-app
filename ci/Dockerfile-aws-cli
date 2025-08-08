@@ -1,9 +1,8 @@
 FROM amazonlinux:2
 
 RUN yum update -y && \
-    yum install -y yum-utils device-mapper-persistent-data lvm2 which curl unzip jq && \
-    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && \
-    yum install -y docker-ce-cli && \
+    amazon-linux-extras enable docker && \
+    yum install -y docker jq which unzip curl && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install && \
