@@ -11,7 +11,7 @@ pipeline {
 
     stages {
 
-        stage('Build') {
+        stage('Build React App') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -20,53 +20,52 @@ pipeline {
             }
             steps {
                 sh '''
-                    ls -la
+                    echo "Building React app..."
                     node --version
                     npm --version
                     npm ci
                     npm run build
-                    ls -la
                 '''
             }
         }
 
-        stage('Build Docker image') {
+        stage('Build Docker Image') {
             agent {
                 docker {
-                    image 'amazon/aws-cli'
+                    image 'docker:24.0.2-cli' // Docker CLI image
                     reuseNode true
-                    args "-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=''"
+                    args '-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=""'
                 }
             }
-
             steps {
                 sh '''
-                    amazon-linux-extras install docker
+                    echo "Building Docker image..."
+                    docker --version
                     docker build -t myjenkinsapp .
                 '''
             }
-        }        
+        }
 
-        stage('Deploy to AWS') {
+        stage('Deploy to AWS ECS') {
             agent {
                 docker {
-                    image 'amazon/aws-cli'
+                    image 'mesosphere/aws-cli' // includes AWS CLI and jq
                     reuseNode true
-                    args "-u root --entrypoint=''"
+                    args '-u root --entrypoint=""'
                 }
             }
 
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
+                        echo "Deploying to AWS ECS..."
                         aws --version
-                        yum install jq -y
                         LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition-prod.json | jq '.taskDefinition.revision')
                         aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE_PROD --task-definition $AWS_ECS_TD_PROD:$LATEST_TD_REVISION
                         aws ecs wait services-stable --cluster $AWS_ECS_CLUSTER --services $AWS_ECS_SERVICE_PROD
                     '''
                 }
             }
-        }        
+        }
     }
 }
