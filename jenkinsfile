@@ -41,9 +41,6 @@ pipeline {
 
             steps {
                 sh '''
-                    which docker || echo "Docker CLI not found"
-                    docker --version || echo "Docker CLI not working"
-                    ls -l /var/run/docker.sock || echo "Docker socket not found"
                     docker build -t myjenkinsapp .
                 '''
             }
